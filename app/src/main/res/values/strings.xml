@@ -1,5 +1,16 @@
 <resources>
     <string name="app_name">Credit Card Holder</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+
+    <!--Form input description values-->
+    <string name="credit_card_type_description_field">Credit Card:</string>
+    <string name="credit_card_number_description_field">Credit Card Number:</string>
+    <string name="credit_card_cvv_description_field">Card Verification Value(CVV):</string>
+    <string name="credit_card_date_description_field">Expiration Date:</string>
+    <string name="credit_card_submit_button">Submit</string>
+
+    <string name="credit_card_number_hint">Fifteen or sixteen digits</string>
+    <string name="credit_card_cvv_hint">Three or four digits</string>
+    <string name="credit_card_month_hint">MM</string>
+    <string name="credit_card_year_hint">YY</string>
 </resources>

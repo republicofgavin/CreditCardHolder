@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="card_card_list">
+        <item>American Express</item>
+        <item>Discover</item>
+        <item>JCB</item>
+        <item>MasterCard</item>
+        <item>Visa</item>
+    </string-array>
+</resources>
