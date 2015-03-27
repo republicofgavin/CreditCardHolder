@@ -6,5 +6,6 @@
         <item>JCB</item>
         <item>MasterCard</item>
         <item>Visa</item>
+        <item>Unknown</item>
     </string-array>
 </resources>

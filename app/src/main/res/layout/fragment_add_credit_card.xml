@@ -18,30 +18,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-
-        <Spinner
-            android:id="@+id/credit_card_type_spinner"
-            android:layout_width="wrap_content"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:entries="@array/card_card_list"
-            android:spinnerMode="dropdown"
-            android:layout_marginRight="10dp" />
-
         <ImageView
             android:id="@+id/credit_card_type_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:background="@drawable/generic_card" />
+
+        <Spinner
+            android:id="@+id/credit_card_type_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/card_card_list" />
+
     </LinearLayout>
 
     <TextView
         android:id="@+id/credit_card_type_help_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:visibility="invisible" />
+        android:textColor="@color/error_help_text"
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/credit_card_number_field_description"
@@ -57,7 +54,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:singleLine="true"
-        android:maxLength="19"
+        android:maxLength="16"
         android:inputType="numberPassword"
         android:hint="@string/credit_card_number_hint" />
 
@@ -65,8 +62,8 @@
         android:id="@+id/credit_card_number_help_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:visibility="invisible" />
+        android:textColor="@color/error_help_text"
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/credit_card_cvv_field_description"
@@ -86,19 +83,17 @@
             android:id="@+id/credit_card_cvv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minWidth="200dp"
             android:inputType="numberPassword"
             android:maxLength="4"
-            android:hint="@string/credit_card_cvv_hint"
-            android:drawableRight="@drawable/cvv" />
+            android:hint="@string/credit_card_cvv_hint" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/credit_card_cvv_help_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:visibility="invisible" />
+        android:textColor="@color/error_help_text"
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/credit_card_date_field_description"
@@ -115,25 +110,32 @@
         android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/credit_card_date_month"
+            android:id="@+id/credit_card_month"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:singleLine="true"
             android:maxLength="2"
-            android:inputType="numberPassword"
+            android:inputType="number"
             android:hint="@string/credit_card_month_hint" />
 
         <EditText
-            android:id="@+id/credit_card_date_year"
+            android:id="@+id/credit_card_year"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:singleLine="true"
             android:maxLength="2"
-            android:inputType="numberPassword"
+            android:inputType="number"
             android:hint="@string/credit_card_year_hint" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/credit_card_date_help_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/error_help_text"
+        android:textSize="20sp" />
 
     <Button
         android:id="@+id/submit_button"

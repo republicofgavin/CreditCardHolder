@@ -63,23 +63,7 @@ public class CreditCardValidator {
                     creditCardCompanyType.name() + " creditCardNumber:" + creditCardNumber);
             return false;
         }
-        final int digitsInCard;
-        switch (creditCardCompanyType) {
-            case JCB:
-            case MASTERCARD:
-            case DISCOVER:
-            case VISA:
-            case UNKNOWN:
-                digitsInCard = 16;
-                break;
-            case AMEX:
-                digitsInCard = 15;
-                break;
-            default:
-                digitsInCard = -1;
-                Log.e(TAG, "Error: Invalid CreditCardCompanyType used for credit card digit verification. Returning false.");
-        }
-        return creditCardNumber.length() == digitsInCard;
+        return creditCardNumber.length() == creditCardCompanyType.getNumberOfDigitsInCreditCard();
     }
 
     /**
@@ -95,23 +79,7 @@ public class CreditCardValidator {
                     creditCardCompanyType.name() + " cvvNumber:" + cvvNumber);
             return false;
         }
-        final int digitsInCVV;
-        switch (creditCardCompanyType) {
-            case JCB:
-            case MASTERCARD:
-            case DISCOVER:
-            case VISA:
-                digitsInCVV = 3;
-                break;
-            case AMEX:
-            case UNKNOWN:
-                digitsInCVV = 4;
-                break;
-            default:
-                digitsInCVV = -1;
-                Log.e(TAG, "Error: Invalid CreditCardCompanyType used for CCV. Returning false.");
-        }
-        return cvvNumber.length() == digitsInCVV;
+        return cvvNumber.length() == creditCardCompanyType.getNumberOfDigitsInCVV();
     }
 
     /**

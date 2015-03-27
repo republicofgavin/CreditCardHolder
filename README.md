@@ -49,8 +49,9 @@ hides input once it has been entered(functionality commonly used for passwords).
 ### App API Level
 
 Because the current functionality of the app does not require abilities (hardware or software) of high level APIs, it was decided
-    that a lower API level should be chosen to allow more people to benefit from the app. Froyo and higher is estimated to be 99.5%
-    of the current share of phones in used in the Google Play Store. Therefore, Froyo was chosen as the min API level.
+    that a lower API level should be chosen to allow more people to benefit from the app. Honeycomb(level 12) and higher is estimated to be over 82%
+    of the current share of phones in used in the Google Play Store and does not require support libraries for fragments and activities(which Robolectric
+    currently has problems with). Therefore, Honeycomb was chosen as the min API level.
 
 ### Testing strategy
 

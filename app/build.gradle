@@ -18,8 +18,8 @@ android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
     defaultConfig {
-        applicationId "com.braintree.creditcardholder"
-        minSdkVersion 8
+        applicationId "com.republicofgavin.creditcardholder"
+        minSdkVersion 12
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
@@ -44,5 +44,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.0.0'
     //Test dependencies
     testCompile 'junit:junit:4.10'
-    testCompile 'org.robolectric:robolectric:2.3'
+    testCompile 'org.robolectric:robolectric:2.4'
 }

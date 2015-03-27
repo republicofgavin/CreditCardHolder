@@ -2,6 +2,7 @@
     <string name="app_name">Credit Card Holder</string>
     <string name="action_settings">Settings</string>
 
+    <string name="credit_card_separation_character">-</string>
     <!--Form input description values-->
     <string name="credit_card_type_description_field">Credit Card:</string>
     <string name="credit_card_number_description_field">Credit Card Number:</string>
@@ -13,4 +14,8 @@
     <string name="credit_card_cvv_hint">Three or four digits</string>
     <string name="credit_card_month_hint">MM</string>
     <string name="credit_card_year_hint">YY</string>
+
+    <!--error help text-->
+    <string name="credit_card_number_error_invalid_digit_number">Invalid number of digits for this card.</string>
+    <string name="credit_card_number_error_luhn_validation">Invalid credit card number.</string>
 </resources>
