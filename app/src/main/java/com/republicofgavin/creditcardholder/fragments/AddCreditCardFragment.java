@@ -1,15 +1,19 @@
 package com.republicofgavin.creditcardholder.fragments;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -27,25 +31,29 @@ import java.util.List;
  *
  * @author Gavin McNeely
  */
-public class AddCreditCardFragment extends Fragment implements View.OnFocusChangeListener, Spinner.OnItemSelectedListener {
+public class AddCreditCardFragment extends Fragment implements View.OnFocusChangeListener, Spinner.OnItemSelectedListener, Button.OnClickListener {
+    private static final String TAG = AddCreditCardFragment.class.getSimpleName();
+
     private Spinner creditCardTypeSpinner;
     private ImageView creditCardImage;
     private TextView creditCardTypeHelpText;
 
     private EditText creditCardNumberEditText;
-    //16 numbers + 3 dashes.
-    private int maxCCNLength = 19;//Current API level does not let us programmatically grab the maxLength.
+    private int maxCCNLength = 16;//Current API level does not let us programmatically grab the maxLength.
     private TextView creditCardNumberHelpText;
 
     private EditText creditCardCVVEditText;
     private int maxCVVLength = 4;
     private TextView creditCardCVVHelpText;
 
-    private EditText creditCardMonthEditText;
-    private EditText creditCardYearEditText;
+    private EditText creditCardDateMonthEditText;
+    private EditText creditCardDateYearEditText;
     private TextView creditCardDateHelpText;
 
+    private Button submitButton;
+
     private List<CreditCardCompanyType> creditCardCompanyTypeList;//List of values that sequentially spinner list;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -62,9 +70,11 @@ public class AddCreditCardFragment extends Fragment implements View.OnFocusChang
         creditCardCVVEditText = (EditText) rootView.findViewById(R.id.credit_card_cvv);
         creditCardCVVHelpText = (TextView) rootView.findViewById(R.id.credit_card_cvv_help_text);
 
-        creditCardMonthEditText = (EditText) rootView.findViewById(R.id.credit_card_month);
-        creditCardYearEditText = (EditText) rootView.findViewById(R.id.credit_card_year);
+        creditCardDateMonthEditText = (EditText) rootView.findViewById(R.id.credit_card_month);
+        creditCardDateYearEditText = (EditText) rootView.findViewById(R.id.credit_card_year);
         creditCardDateHelpText = (TextView) rootView.findViewById(R.id.credit_card_date_help_text);
+
+        submitButton = (Button) rootView.findViewById(R.id.submit_button);
 
         creditCardCompanyTypeList = new ArrayList<>();
         creditCardCompanyTypeList.add(CreditCardCompanyType.AMEX);
@@ -77,16 +87,15 @@ public class AddCreditCardFragment extends Fragment implements View.OnFocusChang
         creditCardNumberEditText.addTextChangedListener(new CCNTextWatcher());
         creditCardCVVEditText.setOnFocusChangeListener(this);
         creditCardTypeSpinner.setOnItemSelectedListener(this);
+        submitButton.setOnClickListener(this);
+
+        final ExpirationDateTextWatcher textWatcher = new ExpirationDateTextWatcher();
+        creditCardDateMonthEditText.addTextChangedListener(textWatcher);
+        creditCardDateYearEditText.addTextChangedListener(textWatcher);
 
         creditCardTypeSpinner.setSelection(creditCardCompanyTypeList.size() - 1);
 
         return rootView;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
     }
 
     /**
@@ -121,22 +130,28 @@ public class AddCreditCardFragment extends Fragment implements View.OnFocusChang
     @SuppressWarnings("deprecation")
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         final CreditCardCompanyType currentCreditCardCompanyType = creditCardCompanyTypeList.get(creditCardTypeSpinner.getSelectedItemPosition());
+        Log.d(TAG, "onItemSelected called for currentCreditCardCompanyType:" + currentCreditCardCompanyType.name());
         final int cardDrawableId;
         switch (currentCreditCardCompanyType) {
             case AMEX:
                 cardDrawableId = R.drawable.amex;
+                creditCardTypeHelpText.setText("");
                 break;
             case DISCOVER:
                 cardDrawableId = R.drawable.discover;
+                creditCardTypeHelpText.setText("");
                 break;
             case JCB:
                 cardDrawableId = R.drawable.jcb;
+                creditCardTypeHelpText.setText("");
                 break;
             case MASTERCARD:
                 cardDrawableId = R.drawable.mastercard;
+                creditCardTypeHelpText.setText("");
                 break;
             case VISA:
                 cardDrawableId = R.drawable.visa;
+                creditCardTypeHelpText.setText("");
                 break;
             case UNKNOWN:
             default:
@@ -146,18 +161,9 @@ public class AddCreditCardFragment extends Fragment implements View.OnFocusChang
 
         maxCVVLength = currentCreditCardCompanyType.getNumberOfDigitsInCVV();
         creditCardCVVEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxCVVLength)});
-        if (creditCardCVVEditText.getText().length() > maxCVVLength) {//Need to shrink the string it is too long for card type
-            final String shortenedString = creditCardCVVEditText.getText().toString().substring(0, maxCVVLength);
-            creditCardCVVEditText.setText(shortenedString);
-        }
 
         maxCCNLength = currentCreditCardCompanyType.getNumberOfDigitsInCreditCard();
         creditCardNumberEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxCCNLength)});
-        if (creditCardNumberEditText.getText().length() > maxCCNLength) {
-            final String shortenedString = creditCardNumberEditText.getText().toString().substring(0, maxCCNLength);
-            creditCardNumberEditText.setText(shortenedString); //performs Luhn validation as well.
-
-        }
 
         //The user can interact with the adapter, but still have focus on the CVV. Thus, we should change its picture if visible.
         if (creditCardCVVEditText.getCompoundDrawables()[2] != null) {
@@ -165,24 +171,94 @@ public class AddCreditCardFragment extends Fragment implements View.OnFocusChang
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            Log.d(TAG, "API level:" + Build.VERSION.SDK_INT + " calling older background method");
             //Deprecated API. Non-deprecated is not available in all supported versions.
             creditCardImage.setBackgroundDrawable(getResources().getDrawable(cardDrawableId));
         } else {
+            Log.d(TAG, "API level:" + Build.VERSION.SDK_INT + " calling newer background method");
             creditCardImage.setBackground(getResources().getDrawable(cardDrawableId));
         }
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
         //no-op
     }
 
+
+    @Override
+    public void onClick(View v) {
+        //submit button
+        Log.d(TAG, "Submit button clicked");
+        boolean shouldShowErrorDialog = false;
+        final CreditCardCompanyType currentCreditCardCompanyType = creditCardCompanyTypeList.get(creditCardTypeSpinner.getSelectedItemPosition());
+        if (currentCreditCardCompanyType == CreditCardCompanyType.UNKNOWN) {
+            shouldShowErrorDialog = true;
+            creditCardTypeHelpText.setText(getString(R.string.credit_card_unknown_type_error));
+            Log.d(TAG, "Invalid CC type");
+        }
+        //CCN
+        if (!CreditCardValidator.isValidNumberOfCreditCardDigits(currentCreditCardCompanyType, creditCardNumberEditText.getText().toString())) {
+            creditCardNumberHelpText.setText(getString(R.string.credit_card_number_error_invalid_digit_number));
+            shouldShowErrorDialog = true;
+            Log.d(TAG, "Invalid CCN digit number");
+        } else if (!CreditCardValidator.isLuhnValidated(creditCardNumberEditText.getText().toString())) {
+            creditCardNumberHelpText.setText(AddCreditCardFragment.this.getString(R.string.credit_card_number_error_luhn_validation));
+            shouldShowErrorDialog = true;
+            Log.d(TAG, "Invalid Luhn number");
+        } else {
+            creditCardNumberHelpText.setText("");
+        }
+
+        //CCV
+        if (!CreditCardValidator.isValidNumberOfCVVDigits(currentCreditCardCompanyType, creditCardCVVEditText.getText().toString())) {
+            creditCardCVVHelpText.setText(getString(R.string.credit_card_cvv_invalid_digit_number));
+            shouldShowErrorDialog = true;
+            Log.d(TAG, "Invalid CVV digit number");
+        } else {
+            creditCardCVVHelpText.setText("");
+        }
+
+        //Date
+        if (creditCardDateMonthEditText.getText().length() != 2 && creditCardDateYearEditText.getText().length() != 2) {
+            shouldShowErrorDialog = true;
+            creditCardDateHelpText.setText(getString(R.string.credit_card_incomplete_date_error));
+            Log.d(TAG, "Incomplete expire date");
+        } else {
+            final int month = Integer.parseInt(creditCardDateMonthEditText.getText().toString());
+            final int year = Integer.parseInt(creditCardDateYearEditText.getText().toString());
+            if (CreditCardValidator.isExpired(month, year)) {
+                creditCardDateHelpText.setText(getString(R.string.credit_card_date_error));
+                Log.d(TAG, "Invalid expire date");
+            } else {
+                creditCardDateHelpText.setText("");
+            }
+        }
+        final boolean shouldFinishActivity = shouldShowErrorDialog;//needs a final variable to access.
+        final String dialogTitle = (shouldShowErrorDialog) ? getString(R.string.credit_card_error_dialog_title)
+                : getString(R.string.credit_card_success_title);
+        final String dialogMessage = (shouldShowErrorDialog) ? getString(R.string.credit_card_error_dialog_message)
+                : getString(R.string.credit_card_success_dialog_message);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(dialogTitle);
+        builder.setMessage(dialogMessage);
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                if (!shouldFinishActivity) {
+                    getActivity().finish();
+                    Log.d(TAG, "Finishing activity with success");
+                }
+            }
+        });
+        final AlertDialog errorDialog = builder.create();
+        errorDialog.show();
+    }
+
     /**
-     * Handles the text change events for the CCN(Credit Card Number) field. It add/removes dashes, performs input validation
+     * Handles the text change events for the CCN(Credit Card Number) field. It performs input validation
      */
     private class CCNTextWatcher implements TextWatcher {
         @Override
@@ -201,10 +277,9 @@ public class AddCreditCardFragment extends Fragment implements View.OnFocusChang
          */
         @Override
         public void afterTextChanged(Editable s) {
-            String newText = s.toString();
+            final String newText = s.toString();
             //Has reached the max number of digits for this credit card type
             if (newText.length() == maxCCNLength) {
-                //final CreditCardCompanyType currentCreditCardCompanyType=creditCardCompanyTypeList.get(creditCardTypeSpinner.getSelectedItemPosition());
                 if (!CreditCardValidator.isLuhnValidated(newText)) {
                     creditCardNumberHelpText.setText(AddCreditCardFragment.this.getString(R.string.credit_card_number_error_luhn_validation));
                 } else {
@@ -213,6 +288,37 @@ public class AddCreditCardFragment extends Fragment implements View.OnFocusChang
             } else {
                 creditCardNumberHelpText.setText("");//They don't have enough digits to qualify for validation.
             }
+        }
+    }
+
+    /**
+     * Handles the text change events for the expiration date field. It performs date validation
+     */
+    private class ExpirationDateTextWatcher implements TextWatcher {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            //no-op
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            //no-op
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            if (creditCardDateMonthEditText.getText().length() == 2 && creditCardDateYearEditText.getText().length() == 2) {
+                final int month = Integer.parseInt(creditCardDateMonthEditText.getText().toString());
+                final int year = Integer.parseInt(creditCardDateYearEditText.getText().toString());
+                if (CreditCardValidator.isExpired(month, year)) {
+                    creditCardDateHelpText.setText(getString(R.string.credit_card_date_error));
+                } else {
+                    creditCardDateHelpText.setText("");// date is valid and non-expired
+                }
+            } else {
+                creditCardDateHelpText.setText("");//data is incomplete at this time, no error message.
+            }
+
         }
     }
 }

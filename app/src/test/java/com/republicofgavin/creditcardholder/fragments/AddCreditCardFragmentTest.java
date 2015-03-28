@@ -1,7 +1,10 @@
 package com.republicofgavin.creditcardholder.fragments;
 
+import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.graphics.drawable.BitmapDrawable;
 import android.text.InputType;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -18,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowAlertDialog;
 
 /**
  * Tests {@link com.republicofgavin.creditcardholder.fragments.AddCreditCardFragment}
@@ -26,9 +30,9 @@ import org.robolectric.annotation.Config;
 //@Config(emulateSdk = 18, reportSdk = 18)
 @Config(emulateSdk = 18, manifest = "src/main/AndroidManifest.xml")
 @RunWith(RobolectricTestRunner.class)
+@TargetApi(18) //needed for IDE errors for the callOnClick
 public class AddCreditCardFragmentTest {
     private AddCreditCardActivity currentActivity;
-    private AddCreditCardFragment addCreditCardFragment;
     private Spinner creditCardTypeSpinner;
     private ImageView creditCardImage;
     private TextView creditCardTypeHelpText;
@@ -44,10 +48,11 @@ public class AddCreditCardFragmentTest {
     private EditText creditCardYearEditText;
     private TextView creditCardDateHelpText;
 
+    private Button submitButton;
+
     @Before
     public void setup() {
         currentActivity = Robolectric.buildActivity(AddCreditCardActivity.class).create().start().resume().get();
-        addCreditCardFragment = (AddCreditCardFragment) currentActivity.getFragmentManager().findFragmentById(R.id.add_credit_card_fragment);
 
         creditCardTypeSpinner = (Spinner) currentActivity.findViewById(R.id.credit_card_type_spinner);
         creditCardImage = (ImageView) currentActivity.findViewById(R.id.credit_card_type_image);
@@ -62,6 +67,8 @@ public class AddCreditCardFragmentTest {
         creditCardMonthEditText = (EditText) currentActivity.findViewById(R.id.credit_card_month);
         creditCardYearEditText = (EditText) currentActivity.findViewById(R.id.credit_card_year);
         creditCardDateHelpText = (TextView) currentActivity.findViewById(R.id.credit_card_date_help_text);
+
+        submitButton = (Button) currentActivity.findViewById(R.id.submit_button);
     }
 
     @Test
@@ -104,7 +111,6 @@ public class AddCreditCardFragmentTest {
         Assert.assertEquals("AMEX CVV is not set",
                 ((BitmapDrawable) Robolectric.application.getResources().getDrawable(R.drawable.amex_cvv)).getBitmap(),
                 ((BitmapDrawable) creditCardCVVEditText.getCompoundDrawables()[2]).getBitmap());
-        Assert.assertEquals("Last digit was not removed from CCN", "337951356110879", creditCardNumberEditText.getText().toString());
 
         //Test the shrinking of CVV
         creditCardCVVEditText.setText("4444");
@@ -114,8 +120,6 @@ public class AddCreditCardFragmentTest {
         Assert.assertEquals("JCB CVV is not set",
                 ((BitmapDrawable) Robolectric.application.getResources().getDrawable(R.drawable.cvv)).getBitmap(),
                 ((BitmapDrawable) creditCardCVVEditText.getCompoundDrawables()[2]).getBitmap());
-        Assert.assertEquals("CNN was altered", "337951356110879", creditCardNumberEditText.getText().toString());
-        Assert.assertEquals("Last digit from CVV was not removed", "444", creditCardCVVEditText.getText().toString());
     }
 
     @Test
@@ -132,4 +136,61 @@ public class AddCreditCardFragmentTest {
         creditCardNumberEditText.setText("337951356110879");
         Assert.assertEquals("Luhn error message was not cleared during incomplete input", "", creditCardNumberHelpText.getText().toString());
     }
+
+    @Test
+    public void testExpirationDate() {
+        creditCardMonthEditText.setText("11");
+        creditCardYearEditText.setText("11");
+        Assert.assertEquals("Expiration error string not showing", currentActivity.getString(R.string.credit_card_date_error), creditCardDateHelpText.getText().toString());
+
+        creditCardYearEditText.setText("99");
+        Assert.assertEquals("Expiration error string showing", "", creditCardDateHelpText.getText().toString());
+    }
+
+    @Test
+    public void testSubmitButton() {
+        submitButton.callOnClick();//This should make all error message fields be filled.
+
+        Assert.assertEquals("Unknown card error did not show", currentActivity.getString(R.string.credit_card_unknown_type_error), creditCardTypeHelpText.getText().toString());
+        Assert.assertEquals("CCN digit error did not show", currentActivity.getString(R.string.credit_card_number_error_invalid_digit_number), creditCardNumberHelpText.getText().toString());
+        Assert.assertEquals("CVV digit error did not show", currentActivity.getString(R.string.credit_card_cvv_invalid_digit_number), creditCardCVVHelpText.getText().toString());
+        Assert.assertEquals("Incomplete date error did not show", currentActivity.getString(R.string.credit_card_incomplete_date_error), creditCardDateHelpText.getText().toString());
+
+        ShadowAlertDialog shadowAlertDialog = Robolectric.shadowOf(ShadowAlertDialog.getLatestAlertDialog());
+        Assert.assertEquals("Error title not showing", currentActivity.getString(R.string.credit_card_error_dialog_title), shadowAlertDialog.getTitle());
+        Assert.assertEquals("Error message not showing", currentActivity.getString(R.string.credit_card_error_dialog_message), shadowAlertDialog.getMessage());
+
+        shadowAlertDialog.dismiss();
+
+        //Check success case
+        creditCardTypeSpinner.setSelection(2);//Discover card
+        creditCardNumberEditText.setText("6011111111111118");
+        creditCardCVVEditText.setText("761");
+        creditCardYearEditText.setText("99");
+        creditCardMonthEditText.setText("13");
+
+        submitButton.callOnClick();//check Luhn and date validation
+
+        Assert.assertEquals("Luhn error did not show", currentActivity.getString(R.string.credit_card_number_error_luhn_validation), creditCardNumberHelpText.getText().toString());
+        Assert.assertEquals("Invalid date error did not show", currentActivity.getString(R.string.credit_card_date_error), creditCardDateHelpText.getText().toString());
+
+        creditCardNumberEditText.setText("6011111111111117");//correct CCN
+        creditCardMonthEditText.setText("11");
+
+        submitButton.callOnClick(); //test success
+
+        Assert.assertEquals("card type error shown", "", creditCardTypeHelpText.getText().toString());
+        Assert.assertEquals("CCN error did shown", "", creditCardNumberHelpText.getText().toString());
+        Assert.assertEquals("CVV error did shown", "", creditCardCVVHelpText.getText().toString());
+        Assert.assertEquals("date error did shown", "", creditCardDateHelpText.getText().toString());
+
+        shadowAlertDialog = Robolectric.shadowOf(ShadowAlertDialog.getLatestAlertDialog());
+        Assert.assertEquals("Success title not showing", currentActivity.getString(R.string.credit_card_success_title), shadowAlertDialog.getTitle());
+        Assert.assertEquals("Success message not showing", currentActivity.getString(R.string.credit_card_success_dialog_message), shadowAlertDialog.getMessage());
+
+        Robolectric.clickOn(ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE));
+
+        Assert.assertTrue("activity is not finishing", Robolectric.shadowOf(currentActivity).isFinishing());
+    }
+
 }
