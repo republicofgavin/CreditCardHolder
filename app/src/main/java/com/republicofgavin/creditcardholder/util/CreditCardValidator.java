@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.republicofgavin.creditcardholder.datamodel.CreditCardCompanyType;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -25,6 +26,7 @@ public class CreditCardValidator {
      */
     public static boolean isLuhnValidated(final String creditCardNumber) {
         if (creditCardNumber == null || TextUtils.isEmpty(creditCardNumber.trim()) || !TextUtils.isDigitsOnly(creditCardNumber)) {
+            Log.w(TAG, "invalid data passed into isLuhnValidated:" + creditCardNumber);
             return false;
         }
         int sum = 0;
@@ -91,19 +93,19 @@ public class CreditCardValidator {
      * @return True if any of the input is invalid or if the date is expired.
      */
     public static boolean isExpired(final int month, final int lastTwoDigitsInYear) {
+        Log.d(TAG, "isExpired called with month:" + month + " yearDigits:" + lastTwoDigitsInYear);
         if (month < 1 || month > 12 || lastTwoDigitsInYear < 0 || lastTwoDigitsInYear > 99) {
             //Instead of throwing an IllegalArgumentException, we just return true indicating that the value is not good. As this is a validator and not a data-model.
             return true;
         }
         //We check to see if it is before the first day hour, minute, second of next month. If so, it is still valid
-        final GregorianCalendar expirationDate = new GregorianCalendar();
-        expirationDate.set(2000 + lastTwoDigitsInYear, month, 1, 0, 0, 0);
-        expirationDate.add(GregorianCalendar.MONTH, 1);
+        final GregorianCalendar expirationDate = new GregorianCalendar(2000 + lastTwoDigitsInYear, month, 1);
+        expirationDate.add(Calendar.MONTH, 1);
         //Consideration: Grab the date from a time server as the JVM's concept of time can be out of sync with reality. As in, the user does not have it
         //auto-updating or just sets it incorrectly.
         final GregorianCalendar today = new GregorianCalendar();
         today.setTime(new Date());
-        return today.before(expirationDate);
+        return today.after(expirationDate);
     }
 }
 

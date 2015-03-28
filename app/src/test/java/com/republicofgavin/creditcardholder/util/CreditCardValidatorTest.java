@@ -65,7 +65,6 @@ public class CreditCardValidatorTest {
         Assert.assertTrue("JCB case was false", CreditCardValidator.isValidNumberOfCreditCardDigits(CreditCardCompanyType.JCB, validJCBCCNumber));
         Assert.assertTrue("MasterCard case was false", CreditCardValidator.isValidNumberOfCreditCardDigits(CreditCardCompanyType.MASTERCARD, validMasterCardCCNumber));
         Assert.assertTrue("VISA case was false", CreditCardValidator.isValidNumberOfCreditCardDigits(CreditCardCompanyType.VISA, validVisaCCNumber));
-        //Assert.assertTrue("UNKNOWN case was false",CreditCardValidator.isValidNumberOfCreditCardDigits(CreditCardCompanyType.UNKNOWN,"00000000000000000000000000000000000000"));
     }
 
     @Test
@@ -81,7 +80,6 @@ public class CreditCardValidatorTest {
         Assert.assertTrue("JCB CVV case was false", CreditCardValidator.isValidNumberOfCVVDigits(CreditCardCompanyType.JCB, "444"));
         Assert.assertTrue("MasterCard CVV case was false", CreditCardValidator.isValidNumberOfCVVDigits(CreditCardCompanyType.MASTERCARD, "444"));
         Assert.assertTrue("VISA CVV case was false", CreditCardValidator.isValidNumberOfCVVDigits(CreditCardCompanyType.VISA, "444"));
-        //Assert.assertTrue("UNKNOWN CCV case was false",CreditCardValidator.isValidNumberOfCCVDigits(CreditCardCompanyType.UNKNOWN,"00000000000000000000000000000000000000"));
     }
 
     @Test
@@ -91,28 +89,28 @@ public class CreditCardValidatorTest {
         Assert.assertTrue("negative year case was false", CreditCardValidator.isExpired(1, -1));
         Assert.assertTrue("year overflow case was false", CreditCardValidator.isExpired(1, 100));
 
-        Assert.assertTrue("December 2099 case was false", CreditCardValidator.isExpired(12, 99));
+        Assert.assertFalse("December 2099 case was false", CreditCardValidator.isExpired(12, 99));
 
         final GregorianCalendar lastMonth = new GregorianCalendar();
         lastMonth.setTime(new Date());
         lastMonth.add(GregorianCalendar.MONTH, -1);
-        Assert.assertFalse("last month case was true", CreditCardValidator.isExpired(lastMonth.get(GregorianCalendar.MONTH), lastMonth.get(GregorianCalendar.YEAR) - 2000));
+        Assert.assertTrue("last month case was true", CreditCardValidator.isExpired(lastMonth.get(GregorianCalendar.MONTH), lastMonth.get(GregorianCalendar.YEAR) - 2000));
 
         final GregorianCalendar lastYear = new GregorianCalendar();
         lastYear.setTime(new Date());
         lastYear.add(GregorianCalendar.YEAR, -1);
         lastYear.add(GregorianCalendar.MONTH, 1);
-        Assert.assertFalse("last year case was true", CreditCardValidator.isExpired(lastYear.get(GregorianCalendar.MONTH), lastYear.get(GregorianCalendar.YEAR) - 2000));
+        Assert.assertTrue("last year case was true", CreditCardValidator.isExpired(lastYear.get(GregorianCalendar.MONTH), lastYear.get(GregorianCalendar.YEAR) - 2000));
 
         final GregorianCalendar today = new GregorianCalendar();
         today.setTime(new Date());
-        Assert.assertTrue("today case was false", CreditCardValidator.isExpired(today.get(GregorianCalendar.MONTH), today.get(GregorianCalendar.YEAR) - 2000));
+        Assert.assertFalse("today case was false", CreditCardValidator.isExpired(today.get(GregorianCalendar.MONTH), today.get(GregorianCalendar.YEAR) - 2000));
 
         final GregorianCalendar nextYear = new GregorianCalendar();
         nextYear.setTime(new Date());
         lastYear.add(GregorianCalendar.YEAR, 1);
         lastYear.add(GregorianCalendar.MONTH, -1);
-        Assert.assertTrue("nextYear case was false", CreditCardValidator.isExpired(nextYear.get(GregorianCalendar.MONTH), nextYear.get(GregorianCalendar.YEAR) - 2000));
+        Assert.assertFalse("nextYear case was false", CreditCardValidator.isExpired(nextYear.get(GregorianCalendar.MONTH), nextYear.get(GregorianCalendar.YEAR) - 2000));
     }
 
 }
