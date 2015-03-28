@@ -9,7 +9,7 @@ the user inputs data, it will be validated and a message will be displayed detai
 Example: American Express credit card CVVs require 4 digits.
 If the user clicks the submit button while invalid(incomplete or incorrect) data is in the fields, a dialog will appear
 listing all the problems currently wrong with the input. Once all input data is valid and the user clicks the submit button,
-a toast will display saying, "Success!" and the screen will close.
+a dialog will display saying, "Success!" and the screen will close upon clicking the dialog button.
 
 ## Functional Requirements
 
